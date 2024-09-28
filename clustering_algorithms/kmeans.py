@@ -185,15 +185,3 @@ def subtract_using_adder(a, b, adder, adder_args):
     
     C = 10 ** (math.floor(math.log10(a) + 1)) # This ensures C - b is never negative
     return adder(C - b, a, *adder_args) - C
-
-if __name__ == '__main__':
-    num1 = 123456789
-    num2 = 1223
-
-    print(
-        subtract_using_adder(
-        num2, num1,
-        accurate_adder,
-        (32, 4))
-         == num1 - num2
-        )

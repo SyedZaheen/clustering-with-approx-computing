@@ -1,10 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from kmeans_algorithms.kmeans import kmeans, calculate_wcss, kmeans_with_adder, kmeansplus_with_adder
+from clustering_algorithms.kmeans import kmeans, calculate_wcss, kmeans_with_adder, kmeansplus_with_adder
 from adders.approximate_adders import accurate_adder, HOAANED_approx, HOERAA_approx, M_HERLOA_approx, HEAA_approx
-from data import load_arff_file
+from data.load_data import load_arff_file
 
-COLORS = ['r', 'g', 'b', 'c', 'm', 'y', 'k']
+COLORS = ['r', 'g', 'b', 'c', 'm', 'y', 'k', 'brown', 'orange']
 
 
 
@@ -49,7 +49,7 @@ def plot_wcss_vs_bits(adder, bits, X, k, start_bit=50, subaxis=None):
     accurate_bits, inaccurate_bits = bits
 
     # Create a range of inaccurate bits to test
-    inacc_bits_range = range(start_bit, inaccurate_bits, 2)
+    inacc_bits_range = range(start_bit, inaccurate_bits, 1)
 
     WCSS = []
     for bit in inacc_bits_range:
@@ -72,20 +72,21 @@ def plot_wcss_vs_bits(adder, bits, X, k, start_bit=50, subaxis=None):
 
 # Main function to test kmeans
 def test_kmeans():
-    file_name = r'diamond9.arff'
-    X = load_arff_file(file_name)
-    k = 9
-    cur_adder = HOERAA_approx
-  
-    inaccurate_bit = 28
-    clusters, centroids, _ = kmeansplus_with_adder(X, k, 100, 28, cur_adder, bits=(32, inaccurate_bit))
-    # plot_clusters(X, clusters, centroids, title=f"{cur_adder.__name__} {inaccurate_bit} bits")
-    fig, axes = plt.subplots(2, 2, figsize=(15, 15))
-    axes = axes.flatten()
 
-    for i in range(4):
-        adders = [HEAA_approx, HOAANED_approx, HOERAA_approx, M_HERLOA_approx]
-        plot_wcss_vs_bits(adders[i], (32, 31), X, k, 20, subaxis=axes[i])
+    X = load_arff_file()
+    k = 9
+    cur_adder = M_HERLOA_approx
+  
+    inaccurate_bit = 16
+    clusters, centroids, _ = kmeansplus_with_adder(X, k, 100, 3134, cur_adder, bits=(32, inaccurate_bit))
+    # plot_clusters(X, clusters, centroids, title=f"{cur_adder.__name__} {inaccurate_bit} bits")
+    plot_wcss_vs_bits(cur_adder, (32, 30), X, k, 24)
+    # fig, axes = plt.subplots(2, 2, figsize=(15, 15))
+    # axes = axes.flatten()
+
+    # for i in range(4):
+    #     adders = [HEAA_approx, HOAANED_approx, HOERAA_approx, M_HERLOA_approx]
+    #     plot_wcss_vs_bits(adders[i], (32, 31), X, k, 20, subaxis=axes[i])
     plt.tight_layout()
     plt.show()
     
