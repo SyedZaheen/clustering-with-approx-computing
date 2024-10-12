@@ -63,7 +63,7 @@ def HEAA_approx(num1, num2, tot_num_bits, inaccurate_bits):
     HEAA_estimate_sum = HEAA_estimate_sum % (2 ** (tot_num_bits + 1))
     
     # Scale the result back based on the scale factor for fractional representation, if necessary
-    return HEAA_estimate_sum / 10 ** scale_factor
+    return HEAA_estimate_sum / scale_factor
 """
 
 def LOA_approx(num1, num2, tot_num_bits, inaccurate_bits):
@@ -90,7 +90,7 @@ def LOA_approx(num1, num2, tot_num_bits, inaccurate_bits):
     LOA_estimate_sum = accurate_region + inaccurate_region
     
     LOA_estimate_sum = LOA_estimate_sum % (2 ** (tot_num_bits + 1))
-    return LOA_estimate_sum / 10 ** scale_factor
+    return LOA_estimate_sum / scale_factor
     
 
 def LOAWA_approx(num1, num2, tot_num_bits, inaccurate_bits):
@@ -105,7 +105,7 @@ def LOAWA_approx(num1, num2, tot_num_bits, inaccurate_bits):
     LOAWA_estimate_sum = accurate_region + inaccurate_region
     
     LOAWA_estimate_sum = LOAWA_estimate_sum % (2 ** (tot_num_bits + 1))
-    return LOAWA_estimate_sum / 10 ** scale_factor
+    return LOAWA_estimate_sum / scale_factor
 
 
 def APPROX5_approx(num1, num2, tot_num_bits, inaccurate_bits):
@@ -121,7 +121,7 @@ def APPROX5_approx(num1, num2, tot_num_bits, inaccurate_bits):
     inaccurate_region = num2 % (2 ** inaccurate_bits)
     APPROX5_estimate_sum = accurate_region + inaccurate_region
     APPROX5_estimate_sum = APPROX5_estimate_sum % (2 ** (tot_num_bits + 1))
-    return APPROX5_estimate_sum / 10 ** scale_factor
+    return APPROX5_estimate_sum / scale_factor
 
 def M_HEAA_approx(num1, num2, tot_num_bits, inaccurate_bits):
      # Prepare operands by adjusting their size and scaling factor
@@ -158,7 +158,7 @@ def M_HEAA_approx(num1, num2, tot_num_bits, inaccurate_bits):
     HEAA_estimate_sum = HEAA_estimate_sum % (2 ** (tot_num_bits + 1))
     
     # Scale the result back based on the scale factor for fractional representation, if necessary
-    return HEAA_estimate_sum / 10 ** scale_factor
+    return HEAA_estimate_sum / scale_factor
 
 def OLOCA_approx(num1, num2, tot_num_bits, inaccurate_bits):
     # Prepare operands by adjusting their size and scaling factor
@@ -195,7 +195,7 @@ def OLOCA_approx(num1, num2, tot_num_bits, inaccurate_bits):
     HEAA_estimate_sum = HEAA_estimate_sum % (2 ** (tot_num_bits + 1))
     
     # Scale the result back based on the scale factor for fractional representation, if necessary
-    return HEAA_estimate_sum / 10 ** scale_factor
+    return HEAA_estimate_sum / scale_factor
 
 #TODO: Error report shows strange results
 def HERLOA_approx(num1, num2, tot_num_bits, inaccurate_bits):
@@ -281,10 +281,10 @@ def HERLOA_approx(num1, num2, tot_num_bits, inaccurate_bits):
         raise ValueError("Inaccurate bits should be greater than or equal to 3")
 
     HERLOA_estimate_sum = HERLOA_estimate_sum % (2 ** (tot_num_bits + 1))
-    return HERLOA_estimate_sum / 10 ** scale_factor
+    return HERLOA_estimate_sum / scale_factor
 
 def bit_not(num):
-    return num ^ ((1 << num.bit_length()) - 1)
+    return num ^ ((1 << num.bit_length()) - 1) if num else 1
 
 def CEETA_approx(num1, num2, tot_num_bits, inaccurate_bits):
     num1, num2, scale_factor = prepare_operands(num1, num2, tot_num_bits, inaccurate_bits)
@@ -297,26 +297,140 @@ def CEETA_approx(num1, num2, tot_num_bits, inaccurate_bits):
     
     CEETA_estimate_sum = accurate_region + inaccurate_region
     CEETA_estimate_sum = CEETA_estimate_sum % (2 ** (tot_num_bits + 1))
-    return CEETA_estimate_sum / 10 ** scale_factor
+    return CEETA_estimate_sum / scale_factor
 
 def COREA_approx(num1, num2, tot_num_bits, inaccurate_bits):
-    pass
+    # Pepare operands
+    num1, num2, scale_factor = prepare_operands(num1, num2, tot_num_bits, inaccurate_bits)
+    
+    # We need the total inaccurate bits to be at least 3
+    if inaccurate_bits < 3:
+        raise ValueError("Inaccurate bits should be greater than or equal to 3")
+    
+    # Rename inaccurate bits to K in order to match the paper
+    K = inaccurate_bits
+    
+    # Set L to be the floor of inaccurate_bits/2
+    L = K // 2
+    
+    # First compute the accurate region
+    accurate_region = (num1 >> K+1) + (num2 >> K+1)
+    
+    #Get the k-th bits
+    AK = (num1 >> K) % 2
+    BK = (num2 >> K) % 2
+    
+    # half-add the Kth bit
+    half_add_kth_bits = AK ^ BK
+    carry = AK & BK
+    
+    # Add the carry to the accurate region
+    accurate_region += carry
+    
+    # Get the k-1th bits
+    AK_1 = (num1 >> K-1) % 2
+    BK_1 = (num2 >> K-1) % 2
+    
+    Cin = AK_1 & BK_1
+    
+    # The kth sum bit is the or of the half adder and the cin
+    SUMK = half_add_kth_bits | Cin
+    
+    # The spread bit is OR-ed from k-1th bit to lth bit
+    spread_bit = half_add_kth_bits & Cin
+    
+    # Now we focus on computing the inaccurate region
+    # First we get the K-1th inaccurate bit
+    SUMK_1 = (AK_1 ^ BK_1) | spread_bit
+    
+    # Now we get from the K-2th bit to the Lth bit for both the numbers
+    A = (num1 >> L) % (2 ** (K - L - 1))
+    B = (num2 >> L) % (2 ** (K - L - 1))
+    
+    # If the spread bit is 1, repeat it (K - L - 1) times
+    spread = spread_bit * (2 ** (K - L - 1) - 1)
+    
+    SUMK_2toL = A | B | spread
+    
+    # Remaining L-1th bits to 0 is just 1
+    SUML_1to0 = 2 ** L - 1
+    
+    # Finally, we bit shift each region to the correct position and add them together
+    inaccurate_region = (SUMK << K) + (SUMK_1 << (K-1)) + (SUMK_2toL << L) + SUML_1to0
+    
+    # Shift the accurate region back
+    accurate_region = accurate_region << (K + 1)
+    
+    # Combine the accurate and inaccurate regions
+    COREA_estimate_sum = accurate_region + inaccurate_region
+    
+    # Ensure result is within the bounds defined by tot_num_bits + 1
+    COREA_estimate_sum = COREA_estimate_sum % (2 ** (tot_num_bits + 1))
+    
+    # Scale the result back based on the scale factor for fractional representation, if necessary
+    return COREA_estimate_sum / scale_factor
+    
 
 def DBAA_approx(num1, num2, tot_num_bits, inaccurate_bits):
+    if inaccurate_bits % 2 != 0:
+        inaccurate_bits -= 1
+        UserWarning(f"Inaccurate bits for DBAA should be an even number. Since it is not, it will be rounded down to {inaccurate_bits}")
+    
     num1, num2, scale_factor = prepare_operands(num1, num2, tot_num_bits, inaccurate_bits)
-    sum = 0
+    
     def impreciseDBA(AQ, AQ_1, BQ, BQ_1, CQm1):
-        SUMQ1 = (bit_not(BQ_1)) | () | () | ()
-        pass
+        nAQ = bit_not(AQ)
+        nAQ_1 = bit_not(AQ_1)
+        nBQ_1 = bit_not(BQ_1)
+
+        CQ_1 = (AQ_1 & AQ) | (BQ_1 & AQ) | (AQ_1 & BQ_1)
+        SUMQ_1 = (nBQ_1 & nAQ_1 & AQ) | (nBQ_1 & AQ_1 & nAQ) | (BQ_1 & nAQ_1 & nAQ) | (BQ_1 & AQ_1 & AQ)
+        SUMQ = (BQ & nAQ) | (CQm1 & nAQ) | (BQ & CQm1)
         
-    raise NotImplementedError("DBAA is not implemented yet")
-    pass
+        return SUMQ_1, SUMQ, CQ_1
+    
+    inaccurate_region = 0
+    CQm1 = 0
+    for i in range(0, inaccurate_bits, 2):
+        AQ = (num1 >> i) % 2
+        AQ_1 = (num1 >> (i + 1)) % 2
+        BQ = (num2 >> i) % 2
+        BQ_1 = (num2 >> (i + 1)) % 2
+        
+        SUMQ_1, SUMQ, CQm1 = impreciseDBA(AQ, AQ_1, BQ, BQ_1, CQm1)
+        inaccurate_region += (SUMQ << i) + (SUMQ_1 << (i + 1))
+    
+    last_carry = CQm1
+    
+    # compute the accurate region
+    accurate_region = (num1 >> inaccurate_bits) + (num2 >> inaccurate_bits) + last_carry
+    accurate_region = accurate_region << inaccurate_bits
+    
+    # Combine the accurate and inaccurate regions
+    DBAA_estimate_sum = accurate_region + inaccurate_region
+    
+    # Ensure result is within the bounds defined by tot_num_bits + 1
+    DBAA_estimate_sum = DBAA_estimate_sum % (2 ** (tot_num_bits + 1))
+    
+    # Scale the result back based on the scale factor for fractional representation, if necessary
+    return DBAA_estimate_sum / scale_factor
+    
+    
+    
 
 def SAAR_approx(num1, num2, tot_num_bits, inaccurate_bits):
+    if not tot_num_bits % 8 or tot_num_bits < 8:
+        UserWarning(
+            "SAAR is only implemented for multiples of 8-bit numbers. Will use the closest 8-bit for this approx."
+        )
+        
+    tot_num_bits = max((tot_num_bits // 8) * 8, 8)
+    print(tot_num_bits)
     num1, num2, scale_factor = prepare_operands(num1, num2, tot_num_bits, inaccurate_bits)
+    
     sum = 0
     cout = 0
-    for times in range(4):
+    for times in range(tot_num_bits // 8):
         sum += ((num1 % (2** 8)) + (num2 % (2** 8)) + cout) << (8 * times)
         A7 = (num1 >> 7) % 2
         B7 = (num2 >> 7) % 2
@@ -328,9 +442,41 @@ def SAAR_approx(num1, num2, tot_num_bits, inaccurate_bits):
     sum = sum + cout
     
     sum = sum % (2 ** (tot_num_bits + 1))
-    return sum / 10 ** scale_factor
+    return sum / scale_factor
+
+def M_SAAR_approx(num1, num2, tot_num_bits, inaccurate_bits):
+    if not tot_num_bits % 8 or tot_num_bits < 8:
+        UserWarning(
+            "M-SAAR is only implemented for multiples of 8-bit numbers. Will use the closest 8-bit for this approx."
+        )
+        
+    tot_num_bits = max((tot_num_bits // 8) * 8, 8)
+    print(tot_num_bits)
+    num1, num2, scale_factor = prepare_operands(num1, num2, tot_num_bits, inaccurate_bits)
+    
+    sum = 0
+    cout = 0
+    for times in range(tot_num_bits // 8):
+        sum += ((num1 % (2** 8)) + (num2 % (2** 8)) + cout) << (8 * times)
+        A7 = (num1 >> 7) % 2
+        B7 = (num2 >> 7) % 2
+        A6 = (num1 >> 6) % 2
+        B6 = (num2 >> 6) % 2
+        cout = (A7 & B7)
+        num1 = num1 >> 8
+        num2 = num2 >> 8
+    sum = sum + cout
+    
+    sum = sum % (2 ** (tot_num_bits + 1))
+    return sum / scale_factor
 
 def BPAA_approx(num1, num2, tot_num_bits, inaccurate_bits):
+    if tot_num_bits != 32:
+        UserWarning(
+            "BPAA is only implemented for 32-bit numbers. Will use 32-bit numbers for this approximation."
+        )
+        tot_num_bits = 32
+    
     num1, num2, scale_factor = prepare_operands(num1, num2, tot_num_bits, inaccurate_bits)
     sum = 0
     cout = 0
@@ -346,4 +492,51 @@ def BPAA_approx(num1, num2, tot_num_bits, inaccurate_bits):
     sum = sum + cout
     
     sum = sum % (2 ** (tot_num_bits + 1))
-    return sum / 10 ** scale_factor
+    return sum / scale_factor
+
+def NAA_approx(num1, num2, tot_num_bits, inaccurate_bits):
+    X, Y, scale_factor = prepare_operands(num1, num2, tot_num_bits, inaccurate_bits)
+    
+    # Rename inaccurate bits to P in order to match the paper
+    P = inaccurate_bits
+    
+    # Grab the P-1, P-2 and P-3 bits of both numbers
+    X_P_1 = (X >> (P-1)) % 2
+    Y_P_1 = (Y >> (P-1)) % 2
+    X_P_2 = (X >> (P-2)) % 2
+    Y_P_2 = (Y >> (P-2)) % 2
+    X_P_3 = (X >> (P-3)) % 2
+    Y_P_3 = (Y >> (P-3)) % 2
+    
+    # Get the carry bit
+    carry = X_P_1 & Y_P_1
+    
+    # Get the accurate region
+    accurate_region = (X >> P) + (Y >> P) + carry
+    
+    # Shift the accurate region back
+    accurate_region = accurate_region << P
+    
+    SP_1 = (X_P_1 ^ Y_P_1) | (X_P_2 & Y_P_2)
+    SP_2 = X_P_2 | Y_P_2 
+    SP_3 = X_P_3 | Y_P_3
+    
+    # Shift the SP bits to the correct position
+    SP_1 = SP_1 << (P-1)
+    SP_2 = SP_2 << (P-2)
+    SP_3 = SP_3 << (P-3)
+    
+    # The remaining bits are just 1
+    S0toSP_4 = (2 ** (P-3)) - 1
+    
+    # Inaccurate region is the sum of all the bits
+    inaccurate_region = SP_1 + SP_2 + SP_3 + S0toSP_4
+    
+    # Combine the accurate and inaccurate regions
+    NAA_estimate_sum = accurate_region + inaccurate_region
+    
+    # Ensure result is within the bounds defined by tot_num_bits + 1
+    NAA_estimate_sum = NAA_estimate_sum % (2 ** (tot_num_bits + 1))
+    
+    # Scale the result back based on the scale factor for fractional representation, if necessary
+    return NAA_estimate_sum / scale_factor

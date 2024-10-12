@@ -31,10 +31,19 @@ def prepare_operands(num1, num2, total_num_bits, inaccurate_bits, minimum_inaccu
 
     operand_max_digits = max(num1_digits, num2_digits)
 
-    scale_factor = max_num_digits - operand_max_digits
+    scale_factor = 10 ** (max_num_digits - operand_max_digits)
 
-    num1 = int(num1 * 10 ** scale_factor)
-    num2 = int(num2 * 10 ** scale_factor)
+    num1 = int(num1 * scale_factor)
+    num2 = int(num2 * scale_factor)
+    
+    # Get maximum bit length of the operands
+    max_bit_length = max(num1.bit_length(), num2.bit_length())
+    diff_bits = total_num_bits - max_bit_length - 1
+    
+    # Multiply the operands by 2 ** diff
+    num1 = num1 << diff_bits
+    num2 = num2 << diff_bits
+    scale_factor *= 2 ** diff_bits
 
     return num1, num2, scale_factor
     
@@ -49,7 +58,7 @@ def accurate_adder(num1, num2, tot_num_bits, inaccurate_bits):
     total = num1 + num2
     total = total % (2 ** (tot_num_bits + 1))
 
-    return total / 10 ** scale_factor
+    return total / scale_factor
 
 
 # HEAA Approx adder sum
@@ -74,7 +83,7 @@ def HEAA_approx(num1, num2, tot_num_bits, inaccurate_bits):
             | (num2 % (2 ** (inaccurate_bits - 1)))
         )
     HEAA_estimate_sum = HEAA_estimate_sum % (2 ** (tot_num_bits + 1))
-    return HEAA_estimate_sum / 10 ** scale_factor
+    return HEAA_estimate_sum / scale_factor
 
 
 # HOERAA Approx adder sum
@@ -115,7 +124,7 @@ def HOERAA_approx(num1, num2, tot_num_bits, inaccurate_bits):
             )
         )
     HOERAA_estimate_sum = HOERAA_estimate_sum % (2 ** (tot_num_bits + 1))
-    return HOERAA_estimate_sum / 10 ** scale_factor
+    return HOERAA_estimate_sum / scale_factor
 
 # TODO: Unexpected behavior when inaccurate_bits < 3
 # HOAANED Approx adder sum
@@ -171,7 +180,7 @@ def HOAANED_approx(num1, num2, tot_num_bits, inaccurate_bits):
             ) if inaccurate_bits > 2 else 2 ** (inaccurate_bits + 1) - 1
         )
     HOAANED_estimate_sum = HOAANED_estimate_sum % (2 ** (tot_num_bits + 1))
-    return HOAANED_estimate_sum / 10 ** scale_factor
+    return HOAANED_estimate_sum / scale_factor
 
 
 # M-HERLOA Approx adder sum
@@ -327,6 +336,6 @@ def M_HERLOA_approx(num1, num2, tot_num_bits, inaccurate_bits):
         )
 
     M_HERLOA_estimate_sum = M_HERLOA_estimate_sum % (2 ** (tot_num_bits + 1))
-    return M_HERLOA_estimate_sum / 10 ** scale_factor
+    return M_HERLOA_estimate_sum / scale_factor
 
 
