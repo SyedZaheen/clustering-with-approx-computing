@@ -1,8 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from clustering_algorithms.kmeans import kmeans, calculate_wcss, kmeans_with_adder, kmeansplus_with_adder
-from adders.approximate_adders import accurate_adder, HOAANED_approx, HOERAA_approx, M_HERLOA_approx, HEAA_approx
-from data.load_data import load_arff_file
+from adders.first_batch_adders import accurate_adder, HOAANED_approx, HOERAA_approx, M_HERLOA_approx, HEAA_approx
+from data.load_data import load_arff_file_from_file_path, load_arff_file
+from constants import DATASETS
 
 COLORS = ['r', 'g', 'b', 'c', 'm', 'y', 'k', 'brown', 'orange']
 
@@ -23,7 +24,7 @@ def plot_clusters(X, clusters, centroids, title=""):
     WCSS = calculate_wcss(X, clusters, centroids)
     plt.scatter(centroids[:, 0], centroids[:, 1], s=100, c='black', marker='X', label='Centroids')
     # Print the WCSS in scientific notation
-    plt.title(f"{title}: WCSS: {WCSS:.5e}")
+    plt.title(f"{title}: WCSS: {WCSS}")
 
 
 # Plot the clusters and centroids
@@ -73,22 +74,25 @@ def plot_wcss_vs_bits(adder, bits, X, k, start_bit=50, subaxis=None):
 # Main function to test kmeans
 def test_kmeans():
 
-    X = load_arff_file()
-    k = 9
-    cur_adder = M_HERLOA_approx
+    dataset_name = 'engytime'
+    X = load_arff_file_from_file_path(DATASETS[dataset_name]['path'])
+    k = DATASETS[dataset_name]['clusters']
+    cur_adder = accurate_adder
   
+    total_bits = 32
     inaccurate_bit = 16
-    clusters, centroids, _ = kmeansplus_with_adder(X, k, 100, 3134, cur_adder, bits=(32, inaccurate_bit))
-    # plot_clusters(X, clusters, centroids, title=f"{cur_adder.__name__} {inaccurate_bit} bits")
-    plot_wcss_vs_bits(cur_adder, (32, 30), X, k, 24)
+    clusters, centroids, _ = kmeansplus_with_adder(X, k, 100, 26, cur_adder, bits=(total_bits, inaccurate_bit))
+    plot_clusters(X, clusters, centroids, title=f"{cur_adder.__name__} {total_bits} bits")
+    plt.tight_layout()
+    plt.show()
+    # plot_wcss_vs_bits(cur_adder, (32, 30), X, k, 24)
     # fig, axes = plt.subplots(2, 2, figsize=(15, 15))
     # axes = axes.flatten()
 
     # for i in range(4):
     #     adders = [HEAA_approx, HOAANED_approx, HOERAA_approx, M_HERLOA_approx]
     #     plot_wcss_vs_bits(adders[i], (32, 31), X, k, 20, subaxis=axes[i])
-    plt.tight_layout()
-    plt.show()
+
     
 def plot_seeds_vs_wcss():
     file_name = r'diamond9.arff'
@@ -111,5 +115,6 @@ def plot_seeds_vs_wcss():
 
 # Call the test function
 # plot_seeds_vs_wcss()
-test_kmeans()
+if __name__ == "__main__":
+    test_kmeans()
 

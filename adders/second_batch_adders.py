@@ -1,4 +1,4 @@
-from .approximate_adders import prepare_operands
+from .utils import prepare_operands
 import warnings
 
 """
@@ -109,8 +109,8 @@ def LOAWA_approx(num1, num2, tot_num_bits, inaccurate_bits):
 
 
 def APPROX5_approx(num1, num2, tot_num_bits, inaccurate_bits):
-    warnings.simplefilter('once', UserWarning)
-    warnings.warn("The order of the arguments matters. The first number is considered the 'X' - its P-1th bit is considered the carry and the rest is thrown away.", UserWarning)    
+    # warnings.simplefilter('once', UserWarning)
+    # warnings.warn("The order of the arguments matters. The first number is considered the 'X' - its P-1th bit is considered the carry and the rest is thrown away.", UserWarning)    
     
     num1, num2, scale_factor = prepare_operands(num1, num2, tot_num_bits, inaccurate_bits)
     carry = (num1 >> (inaccurate_bits - 1)) % 2
@@ -374,7 +374,7 @@ def COREA_approx(num1, num2, tot_num_bits, inaccurate_bits):
 def DBAA_approx(num1, num2, tot_num_bits, inaccurate_bits):
     if inaccurate_bits % 2 != 0:
         inaccurate_bits -= 1
-        UserWarning(f"Inaccurate bits for DBAA should be an even number. Since it is not, it will be rounded down to {inaccurate_bits}")
+        # UserWarning(f"Inaccurate bits for DBAA should be an even number. Since it is not, it will be rounded down to {inaccurate_bits}")
     
     num1, num2, scale_factor = prepare_operands(num1, num2, tot_num_bits, inaccurate_bits)
     
@@ -420,12 +420,9 @@ def DBAA_approx(num1, num2, tot_num_bits, inaccurate_bits):
 
 def SAAR_approx(num1, num2, tot_num_bits, inaccurate_bits):
     if not tot_num_bits % 8 or tot_num_bits < 8:
-        UserWarning(
-            "SAAR is only implemented for multiples of 8-bit numbers. Will use the closest 8-bit for this approx."
-        )
-        
+        # UserWarning("SAAR is only implemented for multiples of 8-bit numbers. Will use the closest 8-bit for this approx.")
+        pass
     tot_num_bits = max((tot_num_bits // 8) * 8, 8)
-    print(tot_num_bits)
     num1, num2, scale_factor = prepare_operands(num1, num2, tot_num_bits, inaccurate_bits)
     
     sum = 0
@@ -446,12 +443,9 @@ def SAAR_approx(num1, num2, tot_num_bits, inaccurate_bits):
 
 def M_SAAR_approx(num1, num2, tot_num_bits, inaccurate_bits):
     if not tot_num_bits % 8 or tot_num_bits < 8:
-        UserWarning(
-            "M-SAAR is only implemented for multiples of 8-bit numbers. Will use the closest 8-bit for this approx."
-        )
-        
+        pass
+        # UserWarning("M-SAAR is only implemented for multiples of 8-bit numbers. Will use the closest 8-bit for this approx.")
     tot_num_bits = max((tot_num_bits // 8) * 8, 8)
-    print(tot_num_bits)
     num1, num2, scale_factor = prepare_operands(num1, num2, tot_num_bits, inaccurate_bits)
     
     sum = 0
@@ -472,9 +466,7 @@ def M_SAAR_approx(num1, num2, tot_num_bits, inaccurate_bits):
 
 def BPAA_approx(num1, num2, tot_num_bits, inaccurate_bits):
     if tot_num_bits != 32:
-        UserWarning(
-            "BPAA is only implemented for 32-bit numbers. Will use 32-bit numbers for this approximation."
-        )
+        # UserWarning("BPAA is only implemented for 32-bit numbers. Will use 32-bit for this approx.")
         tot_num_bits = 32
     
     num1, num2, scale_factor = prepare_operands(num1, num2, tot_num_bits, inaccurate_bits)
@@ -540,3 +532,39 @@ def NAA_approx(num1, num2, tot_num_bits, inaccurate_bits):
     
     # Scale the result back based on the scale factor for fractional representation, if necessary
     return NAA_estimate_sum / scale_factor
+
+def BPAA_LSP1_approx(num1, num2, tot_num_bits, inaccurate_bits):
+    if tot_num_bits != 16:
+        # UserWarning("BPAA is only implemented for 16-bit numbers. Will use 16-bit for this approx.")
+        tot_num_bits = 16
+    
+    # Note: this will throw an error if inaccurate_bits is greater than 16
+    A, B, scale_factor = prepare_operands(num1, num2, tot_num_bits, inaccurate_bits)
+    
+    # Compute the carry using A8/A7 and B8/B7
+    A7 = (A >> 7) % 2
+    A8 = (A >> 8) % 2
+    B7 = (B >> 7) % 2
+    B8 = (B >> 8) % 2
+    
+    Cout = (A8 & B8) | (A7 & B7)
+    
+    # Compute the accurate region, which is the last 8 bits
+    accurate_region = (A >> 8) + (B >> 8) + Cout
+    
+    # Shift the accurate region back
+    accurate_region = accurate_region << 8
+    
+    # Compute the inaccurate region, which is the first 8 bits which are all equal to 1
+    inaccurate_region = (2 ** 8) - 1
+    
+    # Combine the accurate and inaccurate regions
+    BPAA_LSP1_estimate_sum = accurate_region + inaccurate_region
+    
+    # Ensure result is within the bounds defined by tot_num_bits + 1
+    BPAA_LSP1_estimate_sum = BPAA_LSP1_estimate_sum % (2 ** (tot_num_bits + 1))
+    
+    # Scale the result back based on the scale factor for fractional representation, if necessary
+    return BPAA_LSP1_estimate_sum / scale_factor
+
+    

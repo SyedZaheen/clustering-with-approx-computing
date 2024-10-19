@@ -49,6 +49,14 @@ def load_arff_file(file_name = None):
     # Get the full path of the file
     file_path = os.path.join('./data', file_name)
 
+    return load_arff_file_from_file_path(file_path)
+
+# Create a utility function to take the full path of the file and 
+def load_arff_file_from_file_path(file_path):
+    """
+    Load an .arff file from the specified file path and return the data as a NumPy array.
+    """
+
     # Open the .arff file with UTF-8 encoding
     with open(file_path, 'r', encoding='utf-8') as f:
         data, meta = arff.loadarff(f)

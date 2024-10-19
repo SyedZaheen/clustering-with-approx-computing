@@ -1,4 +1,4 @@
-from .approximate_adders import accurate_adder
+from .first_batch_adders import accurate_adder
 import matplotlib.pyplot as plt
 import numpy as np
 
