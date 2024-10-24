@@ -1,4 +1,4 @@
-from .utils import prepare_operands
+from .utils import prepare_operands, bit_not
 import warnings
 
 """
@@ -16,7 +16,7 @@ HERLOA
 COREA
 DBAA
 SAAR
-BPAA
+BPAA1
 
 Example adder:
 # HEAA Approximate Adder Sum
@@ -283,8 +283,7 @@ def HERLOA_approx(num1, num2, tot_num_bits, inaccurate_bits):
     HERLOA_estimate_sum = HERLOA_estimate_sum % (2 ** (tot_num_bits + 1))
     return HERLOA_estimate_sum / scale_factor
 
-def bit_not(num):
-    return num ^ ((1 << num.bit_length()) - 1) if num else 1
+
 
 def CEETA_approx(num1, num2, tot_num_bits, inaccurate_bits):
     num1, num2, scale_factor = prepare_operands(num1, num2, tot_num_bits, inaccurate_bits)
@@ -415,8 +414,6 @@ def DBAA_approx(num1, num2, tot_num_bits, inaccurate_bits):
     # Scale the result back based on the scale factor for fractional representation, if necessary
     return DBAA_estimate_sum / scale_factor
     
-    
-    
 
 def SAAR_approx(num1, num2, tot_num_bits, inaccurate_bits):
     if not tot_num_bits % 8 or tot_num_bits < 8:
@@ -441,6 +438,55 @@ def SAAR_approx(num1, num2, tot_num_bits, inaccurate_bits):
     sum = sum % (2 ** (tot_num_bits + 1))
     return sum / scale_factor
 
+def SAAR16_approx(num1, num2, tot_num_bits, inaccurate_bits):
+    
+    if tot_num_bits != 16:
+        # UserWarning("SAAR16 is only implemented for 16-bit numbers. Will use 16-bit for this approx.")
+        tot_num_bits = 16
+    
+    A, B, scale_factor = prepare_operands(num1, num2, tot_num_bits, inaccurate_bits)
+    # SAAR16 is partition 6-6-4
+    # So lets grab the first 4 bits of each number
+    SUM0to3 = (A % (2 ** 4)) + (B % (2 ** 4))
+    
+    # Calculate the carry
+    A3 = (A >> 3) % 2
+    B3 = (B >> 3) % 2
+    A2 = (A >> 2) % 2
+    B2 = (B >> 2) % 2
+    cout1 = (A3 & B3) | (A2 & B2)
+    
+    # We are done with the right side. Shift the numbers to the right
+    A = A >> 4
+    B = B >> 4
+    
+    # Now we do the same for the next 6 bits
+    SUM4to9 = (A % (2 ** 6)) + (B % (2 ** 6)) + cout1
+    
+    # Calculate the carry
+    A9 = (A >> 5) % 2
+    A8 = (A >> 4) % 2
+    B9 = (B >> 5) % 2
+    B8 = (B >> 4) % 2
+    cout2 = (A9 & B9) | (A8 & B8)
+    
+    # We are done with the middle. Shift the numbers to the right
+    A = A >> 6
+    B = B >> 6
+    
+    # Finally, we do the same for the last 6 bits
+    SUM10to15 = (A % (2 ** 6)) + (B % (2 ** 6)) + cout2
+    
+    # Combine the results
+    SAAR16_estimate_sum = (SUM0to3) + (SUM4to9 << 4) + (SUM10to15 << 10)
+    
+    # Ensure result is within the bounds defined by tot_num_bits + 1
+    SAAR16_estimate_sum = SAAR16_estimate_sum % (2 ** (tot_num_bits + 1))
+    
+    # Scale the result back based on the scale factor for fractional representation, if necessary
+    return SAAR16_estimate_sum / scale_factor
+
+
 def M_SAAR_approx(num1, num2, tot_num_bits, inaccurate_bits):
     if not tot_num_bits % 8 or tot_num_bits < 8:
         pass
@@ -464,23 +510,91 @@ def M_SAAR_approx(num1, num2, tot_num_bits, inaccurate_bits):
     sum = sum % (2 ** (tot_num_bits + 1))
     return sum / scale_factor
 
-def BPAA_approx(num1, num2, tot_num_bits, inaccurate_bits):
-    if tot_num_bits != 32:
-        # UserWarning("BPAA is only implemented for 32-bit numbers. Will use 32-bit for this approx.")
-        tot_num_bits = 32
+def M_SAAR16_approx(num1, num2, tot_num_bits, inaccurate_bits):
+    
+    if tot_num_bits != 16:
+        # UserWarning("SAAR16 is only implemented for 16-bit numbers. Will use 16-bit for this approx.")
+        tot_num_bits = 16
+    
+    A, B, scale_factor = prepare_operands(num1, num2, tot_num_bits, inaccurate_bits)
+    # SAAR16 is partition 6-6-4
+    # So lets grab the first 4 bits of each number
+    SUM0to3 = (A % (2 ** 4)) + (B % (2 ** 4))
+    
+    # Calculate the carry
+    A3 = (A >> 3) % 2
+    B3 = (B >> 3) % 2
+    cout1 = (A3 & B3) 
+    
+    # We are done with the right side. Shift the numbers to the right
+    A = A >> 4
+    B = B >> 4
+    
+    # Now we do the same for the next 6 bits
+    SUM4to9 = (A % (2 ** 6)) + (B % (2 ** 6)) + cout1
+    
+    # Calculate the carry
+    A9 = (A >> 5) % 2
+    B9 = (B >> 5) % 2
+    cout2 = (A9 & B9) 
+    
+    # We are done with the middle. Shift the numbers to the right
+    A = A >> 6
+    B = B >> 6
+    
+    # Finally, we do the same for the last 6 bits
+    SUM10to15 = (A % (2 ** 6)) + (B % (2 ** 6)) + cout2
+    
+    # Combine the results
+    SAAR16_estimate_sum = (SUM0to3) + (SUM4to9 << 4) + (SUM10to15 << 10)
+    
+    # Ensure result is within the bounds defined by tot_num_bits + 1
+    SAAR16_estimate_sum = SAAR16_estimate_sum % (2 ** (tot_num_bits + 1))
+    
+    # Scale the result back based on the scale factor for fractional representation, if necessary
+    return SAAR16_estimate_sum / scale_factor
+
+def BPAA1_approx(num1, num2, tot_num_bits, inaccurate_bits):
+    
+    # UserWarning("BPAA1 is only implemented for multiples of 8.)
+    tot_num_bits = max((tot_num_bits // 8) * 8, 8)
     
     num1, num2, scale_factor = prepare_operands(num1, num2, tot_num_bits, inaccurate_bits)
     sum = 0
     cout = 0
+    middle = tot_num_bits // 2
+    
     for times in range(2):
-        sum += ((num1 % (2** 16)) + (num2 % (2** 16)) + cout) << (16 * times)
-        A15 = (num1 >> 15) % 2
-        B15 = (num2 >> 15) % 2
-        A14 = (num1 >> 14) % 2
-        B14 = (num2 >> 14) % 2
+        sum += ((num1 % (2** middle)) + (num2 % (2** middle)) + cout) << (times * middle)
+        A15 = (num1 >> (middle - 1)) % 2
+        B15 = (num2 >> (middle - 1)) % 2
+        A14 = (num1 >> (middle-1)) % 2
+        B14 = (num2 >> (middle-1)) % 2
         cout = (A15 & B15) | (A14 & B14) 
-        num1 = num1 >> 16
-        num2 = num2 >> 16
+        num1 = num1 >> middle
+        num2 = num2 >> middle
+    sum = sum + cout
+    
+    sum = sum % (2 ** (tot_num_bits + 1))
+    return sum / scale_factor
+
+def BPAA2_approx(num1, num2, tot_num_bits, inaccurate_bits):
+    
+    # UserWarning("BPAA1 is only implemented for multiples of 8.)
+    tot_num_bits = max((tot_num_bits // 8) * 8, 8)
+    
+    num1, num2, scale_factor = prepare_operands(num1, num2, tot_num_bits, inaccurate_bits)
+    sum = 0
+    cout = 0
+    middle = tot_num_bits // 2
+    
+    for times in range(2):
+        sum += ((num1 % (2** middle)) + (num2 % (2** middle)) + cout) << (times * middle)
+        A15 = (num1 >> (middle - 1)) % 2
+        B15 = (num2 >> (middle - 1)) % 2
+        cout = (A15 & B15) 
+        num1 = num1 >> middle
+        num2 = num2 >> middle
     sum = sum + cout
     
     sum = sum % (2 ** (tot_num_bits + 1))
@@ -533,21 +647,21 @@ def NAA_approx(num1, num2, tot_num_bits, inaccurate_bits):
     # Scale the result back based on the scale factor for fractional representation, if necessary
     return NAA_estimate_sum / scale_factor
 
-def BPAA_LSP1_approx(num1, num2, tot_num_bits, inaccurate_bits):
+def BPAA1_LSP1_approx(num1, num2, tot_num_bits, inaccurate_bits):
     if tot_num_bits != 16:
-        # UserWarning("BPAA is only implemented for 16-bit numbers. Will use 16-bit for this approx.")
+        # UserWarning("BPAA1_LSP1 is only implemented for 16-bit numbers. Will use 16-bit for this approx.")
         tot_num_bits = 16
     
     # Note: this will throw an error if inaccurate_bits is greater than 16
     A, B, scale_factor = prepare_operands(num1, num2, tot_num_bits, inaccurate_bits)
     
-    # Compute the carry using A8/A7 and B8/B7
+    # Compute the carry using A6/A7 and B6/B7
     A7 = (A >> 7) % 2
-    A8 = (A >> 8) % 2
+    A6 = (A >> 6) % 2
     B7 = (B >> 7) % 2
-    B8 = (B >> 8) % 2
+    B6 = (B >> 6) % 2
     
-    Cout = (A8 & B8) | (A7 & B7)
+    Cout = (A6 & B6) | (A7 & B7)
     
     # Compute the accurate region, which is the last 8 bits
     accurate_region = (A >> 8) + (B >> 8) + Cout
@@ -559,12 +673,44 @@ def BPAA_LSP1_approx(num1, num2, tot_num_bits, inaccurate_bits):
     inaccurate_region = (2 ** 8) - 1
     
     # Combine the accurate and inaccurate regions
-    BPAA_LSP1_estimate_sum = accurate_region + inaccurate_region
+    BPAA1_LSP1_estimate_sum = accurate_region + inaccurate_region
     
     # Ensure result is within the bounds defined by tot_num_bits + 1
-    BPAA_LSP1_estimate_sum = BPAA_LSP1_estimate_sum % (2 ** (tot_num_bits + 1))
+    BPAA1_LSP1_estimate_sum = BPAA1_LSP1_estimate_sum % (2 ** (tot_num_bits + 1))
     
     # Scale the result back based on the scale factor for fractional representation, if necessary
-    return BPAA_LSP1_estimate_sum / scale_factor
+    return BPAA1_LSP1_estimate_sum / scale_factor
+
+
+def BPAA2_LSP1_approx(num1, num2, tot_num_bits, inaccurate_bits):
+    if tot_num_bits != 16:
+        # UserWarning("BPAA2_LSP1 is only implemented for 16-bit numbers. Will use 16-bit for this approx.")
+        tot_num_bits = 16
+    
+    # Note: this will throw an error if inaccurate_bits is greater than 16
+    A, B, scale_factor = prepare_operands(num1, num2, tot_num_bits, inaccurate_bits)
+    
+    # Compute the carry using A8/A7 and B8/B7
+    A7 = (A >> 7) % 2
+    B7 = (B >> 7) % 2
 
     
+    Cout = (A7 & B7)
+    
+    # Compute the accurate region, which is the last 8 bits
+    accurate_region = (A >> 8) + (B >> 8) + Cout
+    
+    # Shift the accurate region back
+    accurate_region = accurate_region << 8
+    
+    # Compute the inaccurate region, which is the first 8 bits which are all equal to 1
+    inaccurate_region = (2 ** 8) - 1
+    
+    # Combine the accurate and inaccurate regions
+    BPAA1_LSP1_estimate_sum = accurate_region + inaccurate_region
+    
+    # Ensure result is within the bounds defined by tot_num_bits + 1
+    BPAA1_LSP1_estimate_sum = BPAA1_LSP1_estimate_sum % (2 ** (tot_num_bits + 1))
+    
+    # Scale the result back based on the scale factor for fractional representation, if necessary
+    return BPAA1_LSP1_estimate_sum / scale_factor

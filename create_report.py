@@ -7,6 +7,7 @@ import pandas as pd
 from data.load_data import load_arff_file_from_file_path
 from clustering_algorithms.kmeans import calculate_wcss
 from main import plot_clusters as plot_clustering
+from matplotlib import pyplot as plt
 
 # We want to just test the clustering on a single dataset
 # Choose the diamond9 dataset
@@ -19,7 +20,9 @@ def test_clustering(
     bit_configuration = (32, 8),
     initialisation_random_state = 26,
     maximum_iterations = 10,
-    plot_clusters = False
+    plot_clusters = False,
+    plot_save_path = None,
+    plot_title = ""
 ):
     """
     @param dataset_name: The name of the dataset to test the clustering algorithm on
@@ -50,13 +53,18 @@ def test_clustering(
     WCSS = calculate_wcss(dataset, clusters, centroids)
     
     if plot_clusters:
-        plot_clustering(dataset, clusters, centroids)
+        plot_clustering(dataset, clusters, centroids, title=plot_title)
+        if plot_save_path:
+            plt.savefig(plot_save_path)
     
     return WCSS, converged
 
 if __name__ == '__main__':
     
-    all_adder_names = [a for a in APPROXIMATE_ADDERS.keys()]
+    all_adder_names = [
+        "M_HERLOA",
+        "HPETA_II"
+    ]
     
     DATASET_NAMES = list(DATASETS.keys())
     
@@ -64,7 +72,7 @@ if __name__ == '__main__':
 
         for total_bits in [16]:
             
-            inaccurate_bit_range = range(4, 16)
+            inaccurate_bit_range = range(4,13)
             
             # Initialise a dataframe to store rows for the adder functions and the inaccurate bits as the columns
             df = pd.DataFrame(columns=[a for a in all_adder_names], index=inaccurate_bit_range)
@@ -89,7 +97,7 @@ if __name__ == '__main__':
                 print("completed ", adder_name, dataset_name, total_bits)
             
             # put it in a csv file, naming it after the number of total bits and the dataset
-            df.to_csv(f"results3/{dataset_name}_{total_bits}_bits_4_and_5.csv")
+            df.to_csv(f"results_HPETA_and_M_HERLOA/{dataset_name}_{total_bits}.csv")
             
             print("\n completed ", dataset_name, total_bits)
     

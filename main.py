@@ -17,6 +17,7 @@ def plot_data(X):
 
 # Plot the clusters and centroids
 def plot_clusters(X, clusters, centroids, title=""):
+    plt.clf()
     for idx, cluster in enumerate(clusters):
         points = X[cluster]
         plt.scatter(points[:, 0], points[:, 1], c=COLORS[idx % len(COLORS)], label=f'Cluster {idx+1}')

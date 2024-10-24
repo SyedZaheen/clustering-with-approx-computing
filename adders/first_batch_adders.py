@@ -140,7 +140,7 @@ def M_HERLOA_approx(num1, num2, tot_num_bits, inaccurate_bits):
         
     num1 = num1 % (2 ** tot_num_bits)
     num2 = num2 % (2 ** tot_num_bits)
-    if inaccurate_bits >= 4:
+    if inaccurate_bits > 5:
         M_HERLOA_estimate_sum = (
             (
                 (
@@ -211,6 +211,80 @@ def M_HERLOA_approx(num1, num2, tot_num_bits, inaccurate_bits):
                         )
                     )
                     | (2 ** (inaccurate_bits - 4) - 1)
+                )
+            )
+        )
+    elif 4 <= inaccurate_bits <= 5:
+        M_HERLOA_estimate_sum = (
+            (
+                (
+                    (num1 >> inaccurate_bits)
+                    + (num2 >> inaccurate_bits)
+                    + (
+                        ((num1 >> (inaccurate_bits - 1)) % 2)
+                        & ((num2 >> (inaccurate_bits - 1)) % 2)
+                    )
+                )
+                << inaccurate_bits
+            )
+            + (
+                (
+                    (
+                        ((num1 >> (inaccurate_bits - 1)) % 2)
+                        ^ ((num2 >> (inaccurate_bits - 1)) % 2)
+                    )
+                    | (
+                        ((num1 >> (inaccurate_bits - 2)) % 2)
+                        & ((num2 >> (inaccurate_bits - 2)) % 2)
+                    )
+                )
+                << (inaccurate_bits - 1)
+            )
+            + (
+                (
+                    (
+                        ((num1 >> (inaccurate_bits - 2)) % 2)
+                        | ((num2 >> (inaccurate_bits - 2)) % 2)
+                    )
+                    & (
+                        not (
+                            (
+                                ((num1 >> (inaccurate_bits - 2)) % 2)
+                                & ((num2 >> (inaccurate_bits - 2)) % 2)
+                            )
+                            & (
+                                not (
+                                    ((num1 >> (inaccurate_bits - 1)) % 2)
+                                    ^ ((num2 >> (inaccurate_bits - 1)) % 2)
+                                )
+                            )
+                        )
+                    )
+                )
+                << (inaccurate_bits - 2)
+            )
+            + (
+                (num1 % (2 ** (inaccurate_bits - 1)))
+                | (num2 % (2 ** (inaccurate_bits - 1)))
+                | (
+                    (
+                        (2 ** (inaccurate_bits - 2) - 1)
+                        * (
+                            (
+                                (
+                                    ((num1 >> (inaccurate_bits - 1)) % 2)
+                                    ^ ((num2 >> (inaccurate_bits - 1)) % 2)
+                                )
+                                & (
+                                    (
+                                        ((num1 >> (inaccurate_bits - 2)) % 2)
+                                        & ((num2 >> (inaccurate_bits - 2)) % 2)
+                                    )
+                                )
+                            )
+                        )
+                    )
+                    | (2 ** (inaccurate_bits - 3) - 1)
                 )
             )
         )

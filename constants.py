@@ -1,15 +1,13 @@
-from adders import first_batch_adders
-from adders import second_batch_adders
+from adders import first_batch_adders, second_batch_adders, third_batch_adders
 from clustering_algorithms import kmeans
 
 adders = """
 accurate_adder, LOA, LOAWA, APPROX5, HEAA, M_HEAA, OLOCA, 
-HOERAA, CEETA, HOAANED, HERLOA, M_HERLOA, COREA, SAAR, BPAA, DBAA, NAA, M_SAAR, BPAA_LSP1
+HOERAA, CEETA, HOAANED, HERLOA, M_HERLOA, COREA, SAAR, BPAA1, DBAA, NAA, M_SAAR, BPAA1_LSP1
+BPAA2, BPAA2_LSP1, SAAR16, M_SAAR16, HPETA_II
 """
 
 adders_name_list = [adder.strip() for adder in adders.split(", ")]
-print(adders_name_list)
-print()
 
 APPROXIMATE_ADDERS = {
     "accurate_adder": {
@@ -68,9 +66,9 @@ APPROXIMATE_ADDERS = {
         "name": "SAAR",
         "adder": second_batch_adders.SAAR_approx
     },
-    "BPAA": {
-        "name": "BPAA",
-        "adder": second_batch_adders.BPAA_approx
+    "BPAA1": {
+        "name": "BPAA1",
+        "adder": second_batch_adders.BPAA1_approx
     },
     "DBAA": {
         "name": "DBAA",
@@ -84,10 +82,30 @@ APPROXIMATE_ADDERS = {
         "name": "M_SAAR",
         "adder": second_batch_adders.M_SAAR_approx
     },
-    "BPAA_LSP1": {
-        "name": "BPAA_LSP1",
-        "adder": second_batch_adders.BPAA_LSP1_approx
-    }
+    "BPAA1_LSP1": {
+        "name": "BPAA1_LSP1",
+        "adder": second_batch_adders.BPAA1_LSP1_approx
+    },
+    "BPAA2": {
+        "name": "BPAA2",
+        "adder": second_batch_adders.BPAA2_approx
+    },
+    "BPAA2_LSP1": {
+        "name": "BPAA2_LSP1",
+        "adder": second_batch_adders.BPAA2_LSP1_approx
+    },
+    "SAAR16": {
+        "name": "SAAR16",
+        "adder": second_batch_adders.SAAR16_approx
+    },
+    "M_SAAR16": {
+        "name": "M_SAAR16",
+        "adder": second_batch_adders.M_SAAR16_approx
+    },
+    "HPETA_II": {
+        "name": "HPETA_II",
+        "adder": third_batch_adders.HPETA_II_approx
+    },
 }
 
 DATASET_PATHS = [
@@ -136,7 +154,6 @@ CLUSTERING_ALGORITHMS = {
     "KMeans++_with_adder_mod": {
         "name": "KMeans++_with_adder_modified",
         "algorithm": kmeans.kmeansplus_with_adder_modified
-        
     }
     
 }

@@ -1,5 +1,8 @@
 import math
 
+def bit_not(num):
+    return num ^ ((1 << num.bit_length()) - 1) if num else 1
+
 def get_num_digits(num):
     if not num: return 0
     return int(math.log10(num))
