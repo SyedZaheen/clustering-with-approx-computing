@@ -2,8 +2,7 @@ from .first_batch_adders import accurate_adder
 import matplotlib.pyplot as plt
 import numpy as np
 
-def plot_error_vs_inaccurate_bits(approximate_adder, total_num_bits=32, n1=1, n2=1):
-    inaccurate_bits = np.arange(3, total_num_bits)
+def get_errors(inaccurate_bits, approximate_adder, total_num_bits=32, n1=1, n2=1):
     errors = []
     for inaccurate_bit in inaccurate_bits:
         approx_sum = approximate_adder(n1, n2, total_num_bits, inaccurate_bit)
@@ -11,9 +10,15 @@ def plot_error_vs_inaccurate_bits(approximate_adder, total_num_bits=32, n1=1, n2
         percent_error = 100*abs(approx_sum - correct_sum) / correct_sum
         log_percent_error = np.log(percent_error + np.finfo(float).eps)
         print(
-            f"inaccurate_bit {inaccurate_bit} approx_sum: {approx_sum}, correct_sum: {correct_sum}, logpercenterror {log_percent_error}"
+            f" inaccurate_bit {inaccurate_bit} approx_sum: {approx_sum}, correct_sum: {correct_sum}, logpercenterror {log_percent_error} AA {approximate_adder.__name__}"
         )
         errors.append(log_percent_error)
+    
+    return errors
+
+def plot_error_vs_inaccurate_bits(approximate_adder, total_num_bits=32, n1=1, n2=1):
+    inaccurate_bits = np.arange(3, total_num_bits)
+    errors = get_errors(inaccurate_bits, approximate_adder, total_num_bits, n1, n2)
     
     plt.plot(inaccurate_bits, errors)
     # plot the x axis 

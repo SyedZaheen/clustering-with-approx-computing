@@ -16,14 +16,15 @@ def plot_data(X):
     plt.show()
 
 # Plot the clusters and centroids
-def plot_clusters(X, clusters, centroids, title=""):
+def plot_clusters(X, clusters, centroids, title="", plot_centroids=True):
     plt.clf()
     for idx, cluster in enumerate(clusters):
         points = X[cluster]
         plt.scatter(points[:, 0], points[:, 1], c=COLORS[idx % len(COLORS)], label=f'Cluster {idx+1}')
     centroids = np.array(centroids)
     WCSS = calculate_wcss(X, clusters, centroids)
-    plt.scatter(centroids[:, 0], centroids[:, 1], s=100, c='black', marker='X', label='Centroids')
+    if plot_centroids:
+        plt.scatter(centroids[:, 0], centroids[:, 1], s=100, c='black', marker='X', label='Centroids')
     # Print the WCSS in scientific notation
     plt.title(f"{title}: WCSS: {WCSS}")
 

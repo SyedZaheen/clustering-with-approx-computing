@@ -106,6 +106,10 @@ APPROXIMATE_ADDERS = {
         "name": "HPETA_II",
         "adder": third_batch_adders.HPETA_II_approx
     },
+    "LDCA": {
+        "name": "LDCA",
+        "adder": third_batch_adders.LDCA_approx
+    }
 }
 
 DATASET_PATHS = [

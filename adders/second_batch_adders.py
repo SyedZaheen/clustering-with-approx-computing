@@ -690,6 +690,39 @@ def BPAA2_LSP1_approx(num1, num2, tot_num_bits, inaccurate_bits):
     # Note: this will throw an error if inaccurate_bits is greater than 16
     A, B, scale_factor = prepare_operands(num1, num2, tot_num_bits, inaccurate_bits)
     
+    
+    # Compute the carry using A8/A7 and B8/B7
+    Ashift = (A >> (inaccurate_bits - 1)) % 2
+    Bshift = (B >> (inaccurate_bits - 1)) % 2
+
+    Cout = (Ashift & Bshift)
+    
+    # Compute the accurate region, which is the last 8 bits
+    accurate_region = (A >> inaccurate_bits) + (B >> inaccurate_bits) + Cout
+    
+    # Shift the accurate region back
+    accurate_region = accurate_region << inaccurate_bits
+    
+    # Compute the inaccurate region, which is the first shift_size bits which are all equal to 1
+    inaccurate_region = (2 ** inaccurate_bits) - 1
+    
+    # Combine the accurate and inaccurate regions
+    BPAA2_LSP1_estimate_sum = accurate_region + inaccurate_region
+    
+    # Ensure result is within the bounds defined by tot_num_bits + 1
+    BPAA2_LSP1_estimate_sum = BPAA2_LSP1_estimate_sum % (2 ** (tot_num_bits + 1))
+    
+    # Scale the result back based on the scale factor for fractional representation, if necessary
+    return BPAA2_LSP1_estimate_sum / scale_factor
+
+def BPAA2_LSP1_old_approx(num1, num2, tot_num_bits, inaccurate_bits):
+    if tot_num_bits != 16:
+        # UserWarning("BPAA2_LSP1 is only implemented for 16-bit numbers. Will use 16-bit for this approx.")
+        tot_num_bits = 16
+    
+    # Note: this will throw an error if inaccurate_bits is greater than 16
+    A, B, scale_factor = prepare_operands(num1, num2, tot_num_bits, inaccurate_bits)
+    
     # Compute the carry using A8/A7 and B8/B7
     A7 = (A >> 7) % 2
     B7 = (B >> 7) % 2

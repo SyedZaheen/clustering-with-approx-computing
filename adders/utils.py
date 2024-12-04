@@ -15,8 +15,8 @@ def prepare_operands(num1, num2, total_num_bits, inaccurate_bits, minimum_inaccu
     if inaccurate_bits < minimum_inaccurate_bits:
         raise ValueError(f"The number of inaccurate bits should be at least {minimum_inaccurate_bits}")
     
-    if inaccurate_bits >= total_num_bits:
-        raise ValueError("The number of inaccurate bits should be less than the total number of bits")
+    # if inaccurate_bits >= total_num_bits:
+    #     raise ValueError("The number of inaccurate bits should be less than the total number of bits")
 
     if num1 > 2 ** (total_num_bits-1):
         raise ValueError(f"The operand {num1} is too large to be represented by {total_num_bits} bits")

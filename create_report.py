@@ -8,6 +8,7 @@ from data.load_data import load_arff_file_from_file_path
 from clustering_algorithms.kmeans import calculate_wcss
 from main import plot_clusters as plot_clustering
 from matplotlib import pyplot as plt
+import  numpy as np
 
 # We want to just test the clustering on a single dataset
 # Choose the diamond9 dataset
@@ -18,7 +19,7 @@ def test_clustering(
     approximate_adder_name,
     n_clusters,
     bit_configuration = (32, 8),
-    initialisation_random_state = 26,
+    initialisation_random_state = 42,
     maximum_iterations = 10,
     plot_clusters = False,
     plot_save_path = None,
@@ -52,8 +53,19 @@ def test_clustering(
     clusters, centroids, converged = clustering_function(dataset, n_clusters, max_iters=maximum_iterations, adder=adder, random_state=initialisation_random_state, bits=bit_configuration)
     WCSS = calculate_wcss(dataset, clusters, centroids)
     
+    COLORS = ['r', 'g', 'b', 'c', 'm', 'y', 'k', 'brown', 'orange']
     if plot_clusters:
-        plot_clustering(dataset, clusters, centroids, title=plot_title)
+
+        for idx, cluster in enumerate(clusters):
+            points = dataset[cluster]
+            plt.scatter(points[:, 0], points[:, 1], c=COLORS[idx % len(COLORS)], label=f'Cluster {idx+1}')
+        centroids = np.array(centroids)
+        WCSS = calculate_wcss(dataset, clusters, centroids)
+   
+        plt.scatter(centroids[:, 0], centroids[:, 1], s=100, c='black', marker='X', label='Centroids')
+        # Print the WCSS in scientific notation
+        plt.title(f"{dataset_name} on {approximate_adder_name}: WCSS: {WCSS}")
+        
         if plot_save_path:
             plt.savefig(plot_save_path)
     
@@ -61,10 +73,7 @@ def test_clustering(
 
 if __name__ == '__main__':
     
-    all_adder_names = [
-        "M_HERLOA",
-        "HPETA_II"
-    ]
+    all_adder_names = ["LDCA"]
     
     DATASET_NAMES = list(DATASETS.keys())
     
@@ -72,7 +81,7 @@ if __name__ == '__main__':
 
         for total_bits in [16]:
             
-            inaccurate_bit_range = range(4,13)
+            inaccurate_bit_range = range(4,14,2)
             
             # Initialise a dataframe to store rows for the adder functions and the inaccurate bits as the columns
             df = pd.DataFrame(columns=[a for a in all_adder_names], index=inaccurate_bit_range)
@@ -88,7 +97,10 @@ if __name__ == '__main__':
                         adder_name,
                         DATASETS[dataset_name]['clusters'],
                         (total_bits, inaccurate_bits),
-                        plot_clusters=False
+                        initialisation_random_state=42,
+                        maximum_iterations=11,
+                        plot_clusters=False,
+                        
                     )
                     
                     # Put it in the dataframe
@@ -97,9 +109,9 @@ if __name__ == '__main__':
                 print("completed ", adder_name, dataset_name, total_bits)
             
             # put it in a csv file, naming it after the number of total bits and the dataset
-            df.to_csv(f"results_HPETA_and_M_HERLOA/{dataset_name}_{total_bits}.csv")
+            df.to_csv(f"results/LDCA results/{dataset_name}_{total_bits}.csv")
             
-            print("\n completed ", dataset_name, total_bits)
+            print("\ncompleted ", dataset_name, total_bits)
     
                     
     

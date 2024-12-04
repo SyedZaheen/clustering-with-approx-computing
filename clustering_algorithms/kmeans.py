@@ -124,7 +124,7 @@ def kmeansplus_with_adder(X, k, max_iters=100,  random_state=26, adder=accurate_
     return clusters, centroids, np.array(centroid_track)
 
 
-def kmeansplus_with_adder_modified(X, k, max_iters=100, random_state=26, adder=accurate_adder, bits=(32, 4)):
+def kmeansplus_with_adder_modified(X, k, max_iters=100, random_state=42, adder=accurate_adder, bits=(32, 4)):
     # this will be the exact same as the kmeans_with_adder function, except we will use the kmeans++ initialization
     # set the seed for reproducibility
     np.random.seed(random_state)
@@ -155,7 +155,7 @@ def kmeansplus_with_adder_modified(X, k, max_iters=100, random_state=26, adder=a
                     # distance = adder(distance, (point[j] - centroid[j])**2, *bits)  # Calculate the Euclidean distance between the point and the centroid
                     # distance += (point[j] - centroid[j])**2  # Calculate the Euclidean distance between the point and the centroid
                     # distance = math.sqrt(distance)
-                distances[i] = adder(distance, distances[i], *bits) # Add the distance to the list of distances
+                distances[i] = distance # Add the distance to the list of distances
                 # distances[i] += distance
 
             centroid_idx = np.argmin(distances) # Choose index of the the centroid with the smallest distance for that point
