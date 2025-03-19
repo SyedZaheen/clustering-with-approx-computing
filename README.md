@@ -30,7 +30,10 @@ This repository contains code to perform experiments on clustering using approxi
     ```
 # Author
 
-Syed M. M. Mosayeeb Al Hady Zaheen, approximate adder architectures obtained from various external sources
+Syed M. M. Mosayeeb Al Hady Zaheen, some approximate adder architectures obtained from various external sources:
+https://www.mdpi.com/2079-9292/10/23/2917
+https://www.mdpi.com/2079-9292/11/19/3095
+Approximate adder architectures not in the above are novel  
 
 ## Usage
 
