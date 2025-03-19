@@ -28,6 +28,9 @@ This repository contains code to perform experiments on clustering using approxi
     ```sh
     pip install -r requirements.txt
     ```
+# Author
+
+Syed M. M. Mosayeeb Al Hady Zaheen, approximate adder architectures obtained from various external sources
 
 ## Usage
 
