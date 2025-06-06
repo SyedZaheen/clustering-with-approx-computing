@@ -1,42 +1,62 @@
-from adders import error_report
-# from adders.first_batch_adders import prepare_operands
-
-adders = """
- LOA, LOAWA, APPROX5, HEAA, M_HEAA, OLOCA, HOERAA, CEETA, HOAANED, HERLOA, M_HERLOA, COREA, SAAR, BPAA1, DBAA, NAA, M_SAAR
-"""
-
-# error_report.plot_error_vs_inaccurate_bits(second_batch_adders.BPAA2_LSP1_approx, 16, 1025.123, 0)
-# error_report.plot_error_vs_inaccurate_bits(second_batch_adders.CEETA_approx, 16, 102.123, 12452.123)
-
-
-# for adder in adders.split(","):
-#     try:
-#         error_report.plot_error_vs_inaccurate_bits(second_batch_adders.__dict__[adder.strip()+"_approx"], 32, 102.123, 12452.123)
-#     except KeyError:
-#         pass
-#     try:
-#         error_report.plot_error_vs_inaccurate_bits(approximate_adders.__dict__[adder.strip()+"_approx"], 32, 102.123, 12452.123)
-#     except KeyError:
-#         pass
-import constants
+from matplotlib import pyplot as plt
 import numpy as np
 
-npa = np.array
+y_values_engytime = [
+    12000.067597149204,
+12001.033925446984,
+12007.935435461013,
+11999.30334434349 ,
+12196.353878287857,
+12037.311240168567,
+12279.204224235538,
+]
+engytime_baseline = 12002.044046987385
+y_engytime = (np.array(y_values_engytime) - engytime_baseline) / engytime_baseline * 100
 
+y_values_aggregation = [
+    11427.231933091778,
+11425.591214043028,
+11419.46373804495 ,
+11408.408253053716,
+11411.096104043163,
+11608.116595423591,
+13061.290737340973,
+]
+aggregation_baseline = 11427.231
+y_aggregation = (np.array(y_values_aggregation) - aggregation_baseline) / aggregation_baseline * 100
 
-all_adders = [name['adder'] for name in constants.APPROXIMATE_ADDERS.values()]
+y_values_DS850 = [
+    413.1335775404105 ,
+413.1335775404105 ,
+413.15592329472827,
+413.1335775404105 ,
+413.21340826258097,
+414.77051868129206,
+415.7366571213864 ,
+]
+DS850_baseline = 413.1335775404105
+y_DS850 = (np.array(y_values_DS850) - DS850_baseline) / DS850_baseline * 100
 
-# Generate 200 random numbers
-np.random.seed(42)
-n1 = np.random.randint(1, 100, 200)
-n2 = np.random.randint(1, 100, 200)
+y_values_diamond9 = [
+    1015.2392000415291,
+1015.2392000415291,
+1015.256791229979 ,
+1015.2392000415291,
+1015.349929301801 ,
+1015.425312198503 ,
+1026.6195234935903,
+]
+diamond9_baseline = 1015.2392000415291
+y_diamond9 = (np.array(y_values_diamond9) - diamond9_baseline) / diamond9_baseline * 100
 
-for adder in all_adders:
-    error_report.get_errors(
-        [8,9],adder,16, 12423.2343,2434.2324 
-    )
-        
-        
-    
-    
+x_values = list(range(4,11))
 
+plt.plot(x_values, y_engytime, label='engytime')
+plt.plot(x_values, y_aggregation, label='aggregation')
+plt.plot(x_values, y_DS850, label='DS850')
+plt.plot(x_values, y_diamond9, label='diamond9')
+plt.legend()
+plt.title('BPAA1_LSP1 on all datasets: WCSS error vs. Inaccurate portion size')
+plt.xlabel('Inaccurate portion size')
+plt.ylabel('WCSS error (%)')
+plt.show()

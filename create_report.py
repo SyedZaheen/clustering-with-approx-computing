@@ -13,7 +13,7 @@ import  numpy as np
 # We want to just test the clustering on a single dataset
 # Choose the diamond9 dataset
 
-def test_clustering(
+def perform_clustering_with_AA(
     dataset_name,
     clustering_algorithm,
     approximate_adder_name,
@@ -91,7 +91,7 @@ if __name__ == '__main__':
                 # for every inaccurate bit configuration
                 for inaccurate_bits in inaccurate_bit_range:
                     # test the clustering
-                    WCSS, converged = test_clustering(
+                    WCSS, converged = perform_clustering_with_AA(
                         dataset_name,
                         "KMeans++_with_adder_mod",
                         adder_name,

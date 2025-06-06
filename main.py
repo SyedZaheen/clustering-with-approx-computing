@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from clustering_algorithms.kmeans import kmeans, calculate_wcss, kmeans_with_adder, kmeansplus_with_adder
 from adders.first_batch_adders import accurate_adder, HOAANED_approx, HOERAA_approx, M_HERLOA_approx, HEAA_approx
 from data.load_data import load_arff_file_from_file_path, load_arff_file
-from constants import DATASETS
+from constants import DATASETS, APPROXIMATE_ADDERS, CLUSTERING_ALGORITHMS
 
 COLORS = ['r', 'g', 'b', 'c', 'm', 'y', 'k', 'brown', 'orange']
 
@@ -13,7 +13,7 @@ COLORS = ['r', 'g', 'b', 'c', 'm', 'y', 'k', 'brown', 'orange']
 def plot_data(X):
     plt.scatter(X[:, 0], X[:, 1])
     plt.title("Raw data w/o clusters")
-    plt.show()
+
 
 # Plot the clusters and centroids
 def plot_clusters(X, clusters, centroids, title="", plot_centroids=True):
@@ -30,7 +30,7 @@ def plot_clusters(X, clusters, centroids, title="", plot_centroids=True):
 
 
 # Plot the clusters and centroids
-def plot_clusters_with_track(X, clusters, centroids, centroid_track):
+def plot_clusters_with_track(X, clusters, centroids, centroid_track, legend=True):
     colors = ['r', 'g', 'b', 'c', 'm', 'y', 'k']
     
     # Plot the final centroids
@@ -40,9 +40,9 @@ def plot_clusters_with_track(X, clusters, centroids, centroid_track):
     # Plot the centroid tracks
     for idx in range(len(centroids)):
         centroid_path = centroid_track[:, idx, :]
-        plt.plot(centroid_path[:, 0], centroid_path[:, 1], linestyle='--', marker='o', markersize=2, color=colors[idx % len(colors)], label=f'Centroid {idx+1} Path')
+        plt.plot(centroid_path[:, 0], centroid_path[:, 1], linestyle='--', marker='o', markersize=2, color=colors[idx % len(colors)], label=f'Centroid {idx+1}')
     plt.title("")
-    plt.legend()
+    plt.legend() if legend else None
     plt.show()
 
 def plot_wcss_vs_bits(adder, bits, X, k, start_bit=50, subaxis=None):
@@ -56,7 +56,7 @@ def plot_wcss_vs_bits(adder, bits, X, k, start_bit=50, subaxis=None):
 
     WCSS = []
     for bit in inacc_bits_range:
-        clusters, centroids, _ = kmeansplus_with_adder(X, k, random_state=26, adder=adder, bits=(accurate_bits, bit))
+        clusters, centroids, _ = kmeansplus_with_adder(X, k, random_state=42, adder=adder, bits=(accurate_bits, bit))
         wcss = calculate_wcss(X, clusters, centroids)
         WCSS.append(wcss)
         print(f"WCSS for {adder.__name__} with {bit} inaccurate bits: {wcss}")
@@ -65,7 +65,7 @@ def plot_wcss_vs_bits(adder, bits, X, k, start_bit=50, subaxis=None):
     plotter.ylabel("WCSS") if subaxis is None else plotter.set_ylabel("WCSS")
 
     # Plot the results from the accurate adder as a blue line
-    accurate_clusters, accurate_centroids, _ = kmeans_with_adder(X, k, random_state=26, adder=accurate_adder, bits=(accurate_bits, 0))
+    accurate_clusters, accurate_centroids, _ = kmeans_with_adder(X, k, random_state=42, adder=accurate_adder, bits=(accurate_bits, 0))
     accurate_WCSS = calculate_wcss(X, accurate_clusters, accurate_centroids)
     plotter.axhline(y=accurate_WCSS, color='b', linestyle='--', label='WCSS with accurate adder')
     plotter.title(f"WCSS vs. Bits for {adder.__name__}") if subaxis is None else plotter.set_title(f"WCSS vs. Bits for {adder.__name__}")
@@ -73,27 +73,36 @@ def plot_wcss_vs_bits(adder, bits, X, k, start_bit=50, subaxis=None):
     
 
 
-# Main function to test kmeans
-def test_kmeans():
 
-    dataset_name = 'engytime'
-    X = load_arff_file_from_file_path(DATASETS[dataset_name]['path'])
-    k = DATASETS[dataset_name]['clusters']
-    cur_adder = accurate_adder
-  
-    total_bits = 32
-    inaccurate_bit = 16
-    clusters, centroids, _ = kmeansplus_with_adder(X, k, 100, 26, cur_adder, bits=(total_bits, inaccurate_bit))
-    plot_clusters(X, clusters, centroids, title=f"{cur_adder.__name__} {total_bits} bits")
-    plt.tight_layout()
-    plt.show()
-    # plot_wcss_vs_bits(cur_adder, (32, 30), X, k, 24)
-    # fig, axes = plt.subplots(2, 2, figsize=(15, 15))
-    # axes = axes.flatten()
+def main():
+    # Get the dataset
+    file_name = DATASETS['aggregation']['path']
+    k = DATASETS['aggregation']['clusters']
+    X = load_arff_file_from_file_path(file_name)
+    
+    # Get the adder and the algorithm
+    algorithm = CLUSTERING_ALGORITHMS['KMeans++_with_adder_mod']['algorithm'] # kmeansplus_with_adder_modified(X, k, max_iters=100, random_state=42, adder=accurate_adder, bits=(32, 4), track=False)
+    
+    # We use the default accurate adder
 
-    # for i in range(4):
-    #     adders = [HEAA_approx, HOAANED_approx, HOERAA_approx, M_HERLOA_approx]
-    #     plot_wcss_vs_bits(adders[i], (32, 31), X, k, 20, subaxis=axes[i])
+    # Perform the clustering
+    clusters, centroids, centroid_track = algorithm(X, k, random_state=45, max_iters=1000, adder=APPROXIMATE_ADDERS['BPAA2_LSP1']['adder'], bits=(16, 10), threshold=0.001,track=True)
+    
+    # Plot the clusters with the centroid track
+    # plot_clusters(X, clusters, centroids, centroid_track)
+    
+    #Make the figure bigger
+    plt.figure(figsize=(15, 15))
+    plot_clusters(X, clusters, centroids, "KMeans with random initialisation")
+    # plot_data(X)
+    plot_clusters_with_track(X, clusters, centroids, centroid_track, legend=False)
+    # plt.show()
+
+    
+    
+    
+
+
 
     
 def plot_seeds_vs_wcss():
@@ -118,5 +127,5 @@ def plot_seeds_vs_wcss():
 # Call the test function
 # plot_seeds_vs_wcss()
 if __name__ == "__main__":
-    test_kmeans()
+    main()
 
