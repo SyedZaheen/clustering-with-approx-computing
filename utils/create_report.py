@@ -2,11 +2,11 @@
 # we will use the pandas library to create the excel file
 # we will use the openpyxl library to format the excel file
 
-from constants import *
+from .constants import *
 import pandas as pd
 from data.load_data import load_arff_file_from_file_path
 from clustering_algorithms.kmeans import calculate_wcss
-from main import plot_clusters as plot_clustering
+from .tools import plot_clusters as plot_clustering
 from matplotlib import pyplot as plt
 import  numpy as np
 
