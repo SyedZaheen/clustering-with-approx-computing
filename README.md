@@ -85,7 +85,15 @@ MIT License
 
 ## Acknowledgments
 
-This project is part of research on approximate computing applications in machine learning and data mining tasks.
+This work was conducted as part of research at NTU Singapore, College of Computing and Data Science (CCDS) 
+
+We would like to thank:
+- The approximate computing research community for their foundational work
+- CCDS for providing computational resources
+- Contributors to the open-source libraries used in this project
+- Raunaq Nayar for their valuable feedback and discussions
+
+Special thanks to Dr. Douglas Maskell (cited) for guidance throughout this research project.
 
 ## Citation
 
@@ -118,6 +126,3 @@ If you use this code or our results in your research, please cite the following 
 Balasubramanian, P., Zaheen, S. M. M. A. H., & Maskell, D. L. (2025). Machine Learning Using Approximate Computing. Journal of Low Power Electronics and Applications, 15(2), 21. https://doi.org/10.3390/jlpea15020021
 
 Balasubramanian, P., Zaheen, S. M. M. A. H., & Maskell, D. L. (2025). K-means Clustering using Approximate Addition. Under review. Extended work submitted to the 68th IEEE International Midwest Symposium on Circuits and Systems
-
-
-This section provides both BibTeX format (commonly used in LaTeX) and plain text citations, making it easy for others to properly cite your work when using your code or referencing your research.This section provides both BibTeX format (commonly used in LaTeX) and plain text citations, making it easy for others to properly cite your work when using your code or referencing your research.
