@@ -123,6 +123,6 @@ If you use this code or our results in your research, please cite the following 
 
 ### Plain Text Citations
 
-Balasubramanian, P., Zaheen, S. M. M. A. H., & Maskell, D. L. (2025). K-means Clustering using Approximate Addition. Accepted for publication in the 68th IEEE International Midwest Symposium on Circuits and Systems
+Balasubramanian, P., Zaheen, S. M. M. A. H., & Maskell, D. L. (2025). K-means Clustering using Approximate Addition. Accepted for publication in the 68th IEEE International Midwest Symposium on Circuits and Systems (MWSCAS 2025), 10-13 August 2025, Lansing, Michigan, USA.
 
 Balasubramanian, P., Zaheen, S. M. M. A. H., & Maskell, D. L. (2025). Machine Learning Using Approximate Computing. Journal of Low Power Electronics and Applications, 15(2), 21. https://doi.org/10.3390/jlpea15020021
